@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#080b0a" />
+    <meta name="description" content="不好，我被迷宫包围了 — 每次进入，都是一场全新的逃生。" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23050706'/%3E%3Cpath d='M14 14h36v36H14zM14 32h22M32 14v18' stroke='%23b6c7ad' stroke-width='4' fill='none'/%3E%3C/svg%3E" />
+    <title>不好，我被迷宫包围了</title>
+  </head>
+  <body>
+    <main id="game" aria-label="3D 迷宫游戏画面"></main>
+    <div class="screen-fx" aria-hidden="true"></div>
+    <div id="danger-vignette" aria-hidden="true"></div>
+
+    <section id="start-screen" class="screen active">
+      <div class="menu-shell">
+        <header class="menu-header">
+          <div class="brand-mark"><span></span> MAZE / 13</div>
+          <div class="sound-note"><span class="sound-bars"><i></i><i></i><i></i><i></i></span> 建议佩戴耳机</div>
+        </header>
+        <div class="title-block">
+          <p class="eyebrow">PROCEDURAL HORROR EXPERIENCE</p>
+          <h1>不好，<br /><em>我被迷宫包围了</em></h1>
+          <div class="cn-title">SURROUNDED</div>
+          <p class="tagline">你不记得自己是如何来到这里的。<br />但从你睁开眼的那一刻起，<strong>它</strong>就知道了。</p>
+        </div>
+        <div class="menu-actions">
+          <button id="start-button" class="primary-button"><span>进入迷宫</span><b>↗</b></button>
+          <p>每一次进入，墙壁都会改变。出口不会主动等你。</p>
+        </div>
+        <footer class="menu-footer">
+          <div class="feature-list">
+            <span><b>01</b> 随机生成</span><span><b>02</b> 动态追踪</span><span><b>03</b> 无处可藏</span>
+          </div>
+          <div class="quick-controls"><kbd>WASD</kbd> 移动 <i>·</i> <kbd>鼠标</kbd> 观察 <i>·</i> <kbd>E</kbd> 交互</div>
+        </footer>
+      </div>
+    </section>
+
+    <section id="hud" class="hud" aria-label="游戏状态">
+      <div class="objective-panel">
+        <div class="hud-label"><span></span> 当前目标</div>
+        <p id="objective-text">寻找黄铜钥匙</p>
+        <div id="objective-sub">循着微光，不要停下脚步</div>
+      </div>
+
+      <div class="minimap-panel">
+        <div class="map-heading"><span>探索记录</span><b>N ↑</b></div>
+        <div class="map-wrap"><canvas id="minimap" width="220" height="220"></canvas><div class="map-scan"></div></div>
+        <div class="map-footer"><span>已探索 <b id="explored-count">1</b> 区域</span><i id="seed-label">#000000</i></div>
+      </div>
+
+      <div class="inventory-panel">
+        <div id="key-icon" class="key-icon">
+          <svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><circle cx="15" cy="18" r="8"/><path d="M21 24l15 15m-6-6 5-5m-11-1 5-5"/></svg>
+        </div>
+        <div><span class="hud-label">随身物品</span><p id="key-status">尚未找到钥匙</p></div>
+      </div>
+
+      <div class="flashlight-panel">
+        <div class="flashlight-icon">⌁</div>
+        <div><span class="hud-label">战术手电 <kbd>F</kbd></span><p id="flashlight-status">照明正常</p></div>
+      </div>
+
+      <div class="stamina-wrap"><span>体力</span><div class="stamina-track"><i id="stamina-bar"></i></div><kbd>SHIFT</kbd></div>
+      <div id="crosshair"><i></i><i></i></div>
+      <div id="interaction-prompt"><kbd>E</kbd><span>交互</span></div>
+      <div id="threat-indicator"><span></span> 它正在靠近 <span></span></div>
+      <div id="message-toast"></div>
+      <div class="control-hint"><kbd>WASD</kbd> 移动 <kbd>SHIFT</kbd> 奔跑 <kbd>E</kbd> 交互 <kbd>F</kbd> 手电 <kbd>ESC</kbd> 暂停</div>
+    </section>
+
+    <section id="pause-screen" class="screen compact-screen">
+      <div class="compact-card">
+        <p class="eyebrow">DON'T STAY HERE TOO LONG</p>
+        <h2>暂停</h2>
+        <p>迷宫静止了。但它没有。</p>
+        <button id="resume-button" class="primary-button"><span>继续探索</span><b>↗</b></button>
+        <button id="pause-restart-button" class="text-button">放弃并生成新迷宫</button>
+        <div class="pause-controls">WASD 移动 · SHIFT 奔跑 · E 交互 · F 手电</div>
+      </div>
+    </section>
+
+    <section id="death-screen" class="screen death-screen">
+      <div class="jumpscare" aria-hidden="true">
+        <div class="monster-face"><div class="monster-eyes"><i></i><i></i></div><div class="monster-mouth"></div></div>
+      </div>
+      <div class="death-content">
+        <p class="eyebrow">SIGNAL LOST / SUBJECT CONSUMED</p>
+        <h2>它找到你了</h2>
+        <div class="death-line"></div>
+        <p id="death-stats">你在迷宫里坚持了 00:00</p>
+        <button id="death-restart-button" class="primary-button"><span>再次进入</span><b>↗</b></button>
+        <small>新的迷宫不会给你熟悉的退路</small>
+      </div>
+    </section>
+
+    <section id="win-screen" class="screen compact-screen win-screen">
+      <div class="compact-card">
+        <p class="eyebrow">TRANSMISSION RESTORED</p>
+        <div class="escape-symbol">⌁</div>
+        <h2>你逃出来了</h2>
+        <p>门在身后合拢。墙内仍传来你的脚步声。</p>
+        <div class="result-grid"><div><b id="win-time">00:00</b><span>逃生用时</span></div><div><b id="win-explored">0%</b><span>迷宫探索</span></div></div>
+        <button id="win-restart-button" class="primary-button"><span>进入新迷宫</span><b>↗</b></button>
+      </div>
+    </section>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
